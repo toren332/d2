@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import Profile, PrimaryGroup, PrimaryLesson, PrimaryGroupPrimaryLesson
+from .models import Teacher, Student, Group
 
-admin.site.register(Profile)
-admin.site.register(PrimaryGroup)
-admin.site.register(PrimaryLesson)
-admin.site.register(PrimaryGroupPrimaryLesson)
+admin.site.register(Teacher)
+admin.site.register(Student)
+admin.site.register(Group)
