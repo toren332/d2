@@ -1,5 +1,5 @@
 from rest_framework.views import APIView
-from .models import Teacher, Student, Group
+from .models import Teacher, Student, Group, StudentGroup
 from django.http import JsonResponse
 from profiles.serializers import TeacherSerializer, StudentSerializer, UserSerializer, GroupSerializer
 from django.contrib.auth.models import User
@@ -166,6 +166,49 @@ class StudentDetail(APIView):
             }
             return JsonResponse(data, safe=False)
         return JsonResponse({"DEL": False, "ERROR": "try to change another user"}, status=400)
+
+
+class StudentSetGroup(APIView):
+    def post(self, request, user_id, format=None):
+        current_user = request.user
+        if current_user.id == user_id:
+            student = Student.objects.get(user_id=user_id)
+            data = request.data
+            if data.get('group_ids'):
+                group_ids = data['group_ids']
+                for group_id in group_ids:
+                    valid_group = Group.objects.filter(id=group_id)
+                    if not valid_group:
+                        return JsonResponse(
+                            {"StudentSetGroup": False, "ERROR": "one or more group ids is invalid"},
+                            status=400)
+                    else:
+                        if Group.objects.get(id=group_id).is_primary:
+                            return JsonResponse({"StudentSetGroup": False, "ERROR": "try to set primary user group"},
+                                                status=403)
+                for group_id in group_ids:
+                    group = Group.objects.get(id=group_id)
+                    StudentGroup.objects.update_or_create(group=group, student=student)
+            else:
+                return JsonResponse({"StudentSetGroup": False, "ERROR": "request error, wait for group_ids field of "
+                                                                        "list"}, status=400)
+        else:
+            return JsonResponse({"StudentSetGroup": False, "ERROR": "try to set another user in group"},
+                                status=403)
+        return JsonResponse({"StudentSetGroup": True}, status=201)
+
+    def get(self, request, user_id, format=None):
+        valid_student = Student.objects.filter(user_id=user_id)
+        if valid_student:
+            student = Student.objects.get(user_id=user_id)
+            groups0 = StudentGroup.objects.filter(student=student)
+            groups=[]
+            for i in groups0:
+                groups.append(i.group)
+            serializer = GroupSerializer(groups, many=True)
+            return JsonResponse(serializer.data, safe=False)
+        else:
+            return JsonResponse({"StudentGetGroup": False, "ERROR": "student id is invalid"}, status=400)
 
 
 class CustomAuthToken(ObtainAuthToken):

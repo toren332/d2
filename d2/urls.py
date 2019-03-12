@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/v0/users/students',views.StudentList.as_view()),
     path('api/v0/users/teachers/<int:user_id>/', views.TeacherDetail.as_view()),
     path('api/v0/users/students/<int:user_id>/', views.StudentDetail.as_view()),
+    path('api/v0/users/students/<int:user_id>/groups/', views.StudentSetGroup.as_view()),
     path('admin/', admin.site.urls),
     url(r'^api/v0/auth/', views.CustomAuthToken.as_view()),
     url(r'^api/v0/unauth/', views.UnAuth.as_view()),

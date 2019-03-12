@@ -33,7 +33,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('name', 'is_primary')
+        fields = ('name', 'is_primary', 'id')
 
 
 class UserSerializer(serializers.ModelSerializer):
