@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Teacher(models.Model):
     """Профиль преподавателя."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     first_name = models.CharField('first_name', max_length=40, blank=True,
                                   help_text='Account first name')
@@ -14,15 +14,16 @@ class Teacher(models.Model):
                                  help_text='Account last name')
     is_verified = models.BooleanField('is_verified', default=False,
                                       help_text='Indicates teacher has been verified for identity')
-
+    is_admin = models.BooleanField('is_admin', default=False,
+                                      help_text='Indicates teacher has been admin for identity')
     def __str__(self):
         return 'Login: ' + self.user.username
 
 
 class Group(models.Model):
     """Группа."""
-    name = models.CharField('name', max_length=40, blank=True,
-                            help_text='Group name')
+    name = models.CharField('name', max_length=40,
+                            help_text='Group name', unique=True)
     is_primary = models.BooleanField('is_primary', default=False,
                                      help_text='Indicates is the group primary')
 
@@ -32,7 +33,7 @@ class Group(models.Model):
 
 class Student(models.Model):
     """Профиль студента."""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     first_name = models.CharField('first name', max_length=40, blank=True,
                                   help_text='Account first name')
@@ -48,3 +49,9 @@ class Student(models.Model):
 class StudentGroup(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (("group", "student"),)
+
+    def __str__(self):
+        return 'Group: '+self.group.name+'; Login: ' + self.student.user.username

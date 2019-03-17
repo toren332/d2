@@ -1,35 +1,9 @@
 from rest_framework import serializers
-from profiles.models import Teacher, Student, Group
+from profiles.models import Teacher, Student, Group, StudentGroup
 from django.contrib.auth.models import User
 
 
 class GroupSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-
-    def create(self, validated_data):
-        valid_name = Group.objects.filter(name=validated_data['name'])
-        if valid_name:
-            raise serializers.ValidationError("This group_name already exist")
-        else:
-            group = Group.objects.create(name=validated_data['name'])
-            for (key, value) in validated_data.items():
-                setattr(group, key, value)
-        return group
-
-    def update(self, instance, validated_data):
-        for (key, value) in validated_data.items():
-            if key == 'name':
-                groups_by_name = Group.objects.filter(name=validated_data['name'])
-                if groups_by_name:
-                    group_by_name = groups_by_name[0]
-                    if group_by_name.name != instance.name:
-                        raise serializers.ValidationError("This group_name already used")
-                    else:
-                        setattr(instance, key, value)
-                else:
-                    setattr(instance, key, value)
-        instance.save()
-        return instance
 
     class Meta:
         model = Group
@@ -38,8 +12,8 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
-    username = serializers.CharField()
-    password = serializers.CharField(min_length=8)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, min_length=8)
 
     def create(self, validated_data):
         valid_username = User.objects.filter(username=validated_data['username'])
@@ -88,16 +62,12 @@ class UserSerializer(serializers.ModelSerializer):
 class TeacherSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=True)
 
-    class Meta:
-        model = Teacher
-        fields = ('user', 'first_name', 'middle_name', 'last_name', 'is_verified')
-
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
         profile_one = Teacher.objects.create(user=user)
         for (key, value) in validated_data.items():
-            if key != 'is_verified':
+            if key != 'is_verified' or key != 'is_admin':
                 setattr(profile_one, key, value)
         profile_one.save()
         return profile_one
@@ -111,6 +81,12 @@ class TeacherSerializer(serializers.ModelSerializer):
                     setattr(instance, key, value)
         instance.save()
         return instance
+
+    class Meta:
+        model = Teacher
+        fields = ('user', 'first_name', 'middle_name', 'last_name', 'is_verified', 'is_admin')
+
+
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -137,3 +113,10 @@ class StudentSerializer(serializers.ModelSerializer):
                 setattr(instance, key, value)
         instance.save()
         return instance
+
+
+class StudentGroupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StudentGroup
+        fields = ('student', 'group')
