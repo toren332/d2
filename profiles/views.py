@@ -130,6 +130,20 @@ class StudentsGroups(ReadCreate):
         return [permission() for permission in permission_classes]
 
 
+class GroupsFromStudent(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+        queryset = StudentGroup.objects.filter(student_id=pk)
+        serializer = StudentGroupSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+class StudentsFromGroup(viewsets.ViewSet):
+
+    def retrieve(self, request, pk=None):
+        queryset = StudentGroup.objects.filter(group_id=pk)
+        serializer = StudentGroupSerializer(queryset, many=True)
+        return Response(serializer.data)
+
 class Auth(ObtainAuthToken):
     def post(self, request, format=None):
         data = request.data
